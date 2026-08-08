@@ -1,0 +1,31 @@
+Project Name: Arthra MCP (Indian Stock & Mutual Fund Financial Analyst)
+
+Build Arthra MCP — an MCP-Powered Financial Analyst for Indian Markets.
+What if, instead of reading a dozen blogs or scrolling through stock forums,
+ you had an AI agent that could access data from the market, capable of 
+ analyzing data for stock trends and giving you insights just like a real 
+ financial analyst? That’s exactly what you’ll build in this MCP project. 
+ This is not just another chatbot that throws vague opinions at you. 
+ You’re going to build something structured, fast, and offline-ready using 
+ model context protocol. This is the kind of AI product finance teams would 
+ actually use. No hallucinated stock tips, no fake numbers but just a local 
+ financial AI agent that sees the data, runs the numbers, and reports back 
+ like it’s part of your team.
+
+
+In this MCP  LLM project you will build a local financial analyst
+ powered by an LLM and MCP.This agent fetches real-time or historical 
+ stock data (using tools like Yahoo Finance, Finnhub, or Alpha Vantage), 
+ runs lightweight analysis using Python libraries like NumPy, Pandas, and 
+ Plotly, and then generates structured, insight-rich summaries directly in 
+ Cursor or Claude Desktop. Everything is handled via MCP structured function 
+ calls, no prompt engineering hacks, and full control over the data pipeline.
+  This is not a chatbot that says “Apple Stock is a strong buy because of 
+  reasons.” This is a structured analyst pipeline with real queries, charts, 
+  and actionable outputs. The model doesn’t guess. It pulls from verified 
+  data sources, then uses Python tools you define to do statistical
+   calculations, rolling averages, price swings, and even volatility overlays.
+
+To make your local AI financial analyst truly functional, we only need two 
+well-scoped tools : one for pulling the numbers, and one for making sense 
+of them. 
