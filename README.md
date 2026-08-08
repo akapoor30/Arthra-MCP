@@ -107,9 +107,11 @@ pip install --upgrade pip
 
 ---
 
-## 📑 Detailed Plan
+## 📑 Detailed Plan & Progress Tracking
 
-For a complete breakdown of each implementation phase, refer to [docs/plan.md](docs/plan.md).
+- For a complete technical breakdown of each implementation phase, refer to [docs/plan.md](docs/plan.md).
+- For step-by-step progress tracking, refer to [TODO.md](TODO.md).
+- For detailed technical explanation of implemented phases, refer to [docs/phase_explanation.md](docs/phase_explanation.md).
 
 ---
 

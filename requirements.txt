@@ -1,0 +1,17 @@
+# Core MCP Framework
+mcp>=1.2.0
+
+# Indian Financial & Market Data APIs
+yfinance>=0.2.38
+requests>=2.31.0
+
+# Quantitative & Financial Computation
+pandas>=2.2.0
+numpy>=1.26.0
+
+# Data Visualization
+plotly>=5.20.0
+kaleido>=0.2.1
+
+# Environment & Utilities
+python-dotenv>=1.0.1
