@@ -1,0 +1,29 @@
+# Python Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Generated Output & Artifacts
+charts/*.html
+reports/*.md
+
+# Environment Variables
+.env
+.env.local
