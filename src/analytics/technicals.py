@@ -34,9 +34,9 @@ def calculate_rsi(df: pd.DataFrame, window: int = 14, column: str = "Close") -> 
     gain = delta.clip(lower=0)
     loss = -1 * delta.clip(upper=0)
     
-    # Exponential Weighted Moving Average (Wilder smoothing)
-    avg_gain = gain.ewm(alpha=1/window, min_periods=window, adjust=False).mean()
-    avg_loss = loss.ewm(alpha=1/window, min_periods=window, adjust=False).mean()
+    # Exponential Weighted Moving Average with min_periods=1 to cover full date range
+    avg_gain = gain.ewm(alpha=1/window, min_periods=1, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1/window, min_periods=1, adjust=False).mean()
     
     rs = avg_gain / (avg_loss + 1e-10)
     rsi = 100 - (100 / (1 + rs))

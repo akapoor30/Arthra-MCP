@@ -15,4 +15,7 @@ Documentation Index:
 - Phase 1 Explanation: docs/phase_1.md (Environment Setup & Architecture Foundation)
 - Phase 2 Explanation: docs/phase_2.md (Indian Market Data Ingestion Engine)
 - Phase 3 Explanation: docs/phase_3.md (Financial Analytics & Quantitative Engine)
+- Phase 4 Explanation: docs/phase_4.md (Plotly Interactive Visualization Engine)
+- Phase 5 Explanation: docs/phase_5.md (FastMCP Server Implementation)
+- Phase 6 Explanation: docs/phase_6.md (Financial Analyst Agent & Interactive Interface)
 - Progress Tracker: TODO.md

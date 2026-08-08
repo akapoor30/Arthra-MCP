@@ -51,35 +51,35 @@ Track the implementation progress of **Arthra MCP**, synced directly with the ph
 ---
 
 ## 📌 Phase 4: Plotly Visualization Engine
-- [ ] **Chart Builder (`src/visualization/chart_builder.py`)**:
-  - [ ] Build **Stock Candlestick Chart** with Volume, SMA/EMA overlays, RSI & MACD subplots.
-  - [ ] Build **Stock Fundamental Trend Charts** (Revenue, Earnings, P/E historical range).
-  - [ ] Build **Mutual Fund Performance Chart** (NAV trajectory curve, drawdown plot).
-  - [ ] Build **Benchmark Comparison Chart** (Normalize multi-asset returns vs NIFTY 50 on % scale).
-  - [ ] Implement HTML chart export into `charts/` with dark/light theme options.
+- [x] **Chart Builder (`src/visualization/chart_builder.py`)**:
+  - [x] Build **Stock Candlestick Chart** with Volume, SMA/EMA overlays, RSI & MACD subplots.
+  - [x] Build **Stock Fundamental Trend Charts** (Revenue, Earnings, P/E historical range).
+  - [x] Build **Mutual Fund Performance Chart** (NAV trajectory curve, drawdown plot).
+  - [x] Build **Benchmark Comparison Chart** (Normalize multi-asset returns vs NIFTY 50 on % scale).
+  - [x] Implement HTML chart export into `charts/` with dark/light theme options.
 
 ---
 
 ## 📌 Phase 5: FastMCP Server Implementation
-- [ ] **MCP Tools Definition (`src/mcp_server/tools.py`)**:
-  - [ ] `search_indian_symbol`: Resolve Indian stock symbol or mutual fund scheme code.
-  - [ ] `fetch_financial_data`: Retrieve raw stock price quotes / mutual fund NAVs / financials.
-  - [ ] `analyze_and_visualize`: Run technicals/fundamentals/MF metrics & return Plotly chart URLs.
-  - [ ] `compare_assets`: Side-by-side comparative analysis of Indian equities & mutual funds.
-- [ ] **FastMCP Server Runner (`src/mcp_server/server.py`)**:
-  - [ ] Initialize FastMCP server instance.
-  - [ ] Configure STDIO transport protocol.
-  - [ ] Add input validation and error handling for invalid symbols or API timeouts.
+- [x] **MCP Tools Definition (`src/mcp_server/tools.py`)**:
+  - [x] `search_indian_symbol`: Resolve Indian stock symbol or mutual fund scheme code.
+  - [x] `fetch_financial_data`: Retrieve raw stock price quotes / mutual fund NAVs / financials.
+  - [x] `analyze_and_visualize`: Run technicals/fundamentals/MF metrics & return Plotly chart URLs.
+  - [x] `compare_assets`: Side-by-side comparative analysis of Indian equities & mutual funds.
+- [x] **FastMCP Server Runner (`src/mcp_server/server.py`)**:
+  - [x] Initialize FastMCP server instance.
+  - [x] Configure STDIO transport protocol.
+  - [x] Add input validation and error handling for invalid symbols or API timeouts.
 
 ---
 
 ## 📌 Phase 6: Financial Analyst Agent & Interactive Interface
-- [ ] **LLM Agent Orchestrator (`src/agent/agent.py`)**:
-  - [ ] Build natural language financial analyst agent using registered MCP tools.
-  - [ ] Format structured research reports with embedded interactive Plotly chart links.
-- [ ] **CLI & Application Entry Point (`main.py`)**:
-  - [ ] `--server`: Command flag to launch the FastMCP server for Claude Desktop / Cursor.
-  - [ ] `--agent`: Command flag to run interactive CLI financial analyst queries.
+- [x] **LLM Agent Orchestrator (`src/agent/agent.py`)**:
+  - [x] Build natural language financial analyst agent using registered MCP tools.
+  - [x] Format structured research reports with embedded interactive Plotly chart links.
+- [x] **CLI & Application Entry Point (`main.py`)**:
+  - [x] `--server`: Command flag to launch the FastMCP server for Claude Desktop / Cursor.
+  - [x] `--agent`: Command flag to run interactive CLI financial analyst queries.
 
 ---
 
