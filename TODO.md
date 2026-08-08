@@ -84,7 +84,7 @@ Track the implementation progress of **Arthra MCP**, synced directly with the ph
 ---
 
 ## 📌 Phase 7: Verification & Documentation
-- [ ] Build unit & integration tests (`tests/test_stock_fetcher.py`, `tests/test_mf_fetcher.py`, `tests/test_analytics.py`, `tests/test_mcp_server.py`).
-- [ ] Perform live end-to-end verification with Indian stocks (`RELIANCE.NS`, `TCS.NS`) and mutual funds (`Parag Parikh Flexi Cap`).
-- [ ] Create `walkthrough.md` with sample outputs, screenshots, and visual verification.
-- [ ] Update `README.md` with final installation commands and usage demonstrations.
+- [x] Build unit & integration tests (`tests/test_stock_fetcher.py`, `tests/test_mf_fetcher.py`, `tests/test_analytics.py`, `tests/test_mcp_server.py`, `tests/test_agent.py`).
+- [x] Perform live end-to-end verification with Indian stocks (`RELIANCE.NS`, `TCS.NS`) and mutual funds (`Parag Parikh Flexi Cap`).
+- [x] Create `walkthrough.md` with sample outputs, screenshots, and visual verification.
+- [x] Update `README.md` with final installation commands and usage demonstrations.

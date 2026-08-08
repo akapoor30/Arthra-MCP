@@ -27,91 +27,121 @@ flowchart TD
 
 ---
 
-## ✨ Features (Planned & In Progress)
+## ✨ Features (All 7 Phases Implemented)
 
 - **📈 Indian Equities Data Engine**: Fetch real-time quotes, historical OHLCV data, valuation ratios, balance sheets, and cash flow statements for NSE (`.NS`) and BSE (`.BO`) stocks.
 - **🏦 Mutual Funds Data Engine**: Query latest NAVs, historical performance, category benchmarks, and fund details for all Indian Mutual Fund schemes via AMFI.
 - **🧮 Quantitative Analytics Engine**:
   - **Technicals**: Moving Averages (SMA/EMA), RSI (14), MACD, Bollinger Bands, Beta relative to NIFTY 50 (`^NSEI`).
   - **Fundamentals**: Health scorecard (P/E, P/B, EV/EBITDA, ROE, ROCE, Debt to Equity).
-  - **Mutual Funds**: CAGR (1Y, 3Y, 5Y), Rolling Returns, Volatility, Sharpe Ratio, Sortino Ratio, and Max Drawdown.
-- **📊 Interactive Plotly Visualizations**: Candlestick charts with technical overlays, fundamental trend bands, mutual fund NAV trajectories, and multi-asset relative return comparisons.
-- **🔌 FastMCP Tools Protocol**: Expose clean MCP tools (`search_indian_symbol`, `fetch_financial_data`, `analyze_and_visualize`, `compare_assets`) for host clients like Claude Desktop, Cursor, or CLI Agents.
+  - **Mutual Funds**: CAGR (1Y, 3Y, 5Y, Inception), Rolling Returns, Volatility, Sharpe Ratio, Sortino Ratio, and Max Drawdown.
+- **📊 Interactive Plotly Visualizations**: Candlestick charts with technical overlays, fundamental trend bands, mutual fund NAV trajectories, and separate stock & mutual fund comparison charts.
+- **🔌 FastMCP Tools Protocol**: Exposes clean MCP tools (`search_indian_symbol`, `fetch_financial_data`, `analyze_and_visualize`, `compare_assets`) for host clients like Claude Desktop, Cursor, or CLI Agents.
+- **🤖 Autonomous Financial Agent**: Synthesizes executive markdown research reports saved in `reports/` with embedded interactive Plotly chart links.
 
 ---
 
-## 🚀 Execution Roadmap
+## 🚀 Development Roadmap
 
 ```mermaid
 timeline
-    title Arthra MCP Development Roadmap
-    Phase 1 : Environment Setup : Python 3.14 venv : Core dependencies (mcp, yfinance, pandas, plotly) : Directory Architecture
-    Phase 2 : Data Ingestion : Stock Fetcher (yfinance .NS/.BO) : Mutual Fund Fetcher (mfapi.in) : Caching & Error Handling
-    Phase 3 : Quantitative Engine : Technical Indicators (RSI, MACD, SMA) : Fundamental Ratios : Mutual Fund Risk Ratios (CAGR, Sharpe)
-    Phase 4 : Plotly Visualization : Candlestick Subplots : Fundamental Trends : Mutual Fund NAV Curves & Drawdowns
-    Phase 5 : FastMCP Server : Standard MCP Tools Protocol : Tool registration over STDIO
-    Phase 6 : Financial Agent : Natural Language Agent Runner : Markdown Financial Report Generator
-    Phase 7 : Verification : Unit & Integration Tests : Real-World Indian Asset Verification
+    title Arthra MCP Development Roadmap (Completed)
+    Phase 1 : Environment Setup : Python 3.14 venv : Core dependencies : Directory Architecture
+    Phase 2 : Data Ingestion : Stock Fetcher (yfinance .NS/.BO) : Mutual Fund Fetcher (mfapi.in)
+    Phase 3 : Quantitative Engine : Technical Indicators (RSI, MACD, SMA) : Fundamental Scorecard : MF CAGR & Sharpe
+    Phase 4 : Plotly Visualization : Candlestick Subplots : NAV Curves & Drawdowns : Separate Comparison Charts
+    Phase 5 : FastMCP Server : Registered Core MCP Tools : JSON-RPC over STDIO
+    Phase 6 : Financial Agent : Intelligent Agent Runner : Markdown Report Synthesis
+    Phase 7 : Verification : 23/23 Test Suites Passed : Complete Documentation Suite
 ```
 
 ---
 
-## 🛠️ Project Structure (Initial Setup)
+## 🛠️ Project Structure
 
 ```text
 mcp_financal_analyst/
 ├── docs/
 │   ├── info.txt         # Project vision & specification
-│   └── plan.md          # Detailed phase-wise technical plan & diagrams
+│   ├── plan.md          # Master architecture plan & diagrams
+│   ├── phase_1.md       # Phase 1: Environment & Architecture
+│   ├── phase_2.md       # Phase 2: Data Ingestion Engine
+│   ├── phase_3.md       # Phase 3: Quantitative Engine
+│   ├── phase_4.md       # Phase 4: Plotly Visualization Engine
+│   ├── phase_5.md       # Phase 5: FastMCP Server Implementation
+│   ├── phase_6.md       # Phase 6: Financial Analyst Agent
+│   └── phase_7.md       # Phase 7: Testing & Verification
 ├── images/
-│   └── image.png        # Workflow architectural reference
-├── src/                 # (Phase 1-6 Implementation)
-│   ├── data/            # Stock & Mutual Fund fetchers
-│   ├── analytics/       # Quantitative technicals & fundamentals
-│   ├── visualization/   # Plotly chart builders
-│   ├── mcp_server/      # FastMCP tools & server runner
-│   └── agent/           # LLM agent client interface
-├── charts/              # Generated interactive Plotly HTML charts
-├── reports/             # Generated markdown financial reports
+│   └── image.png        # System architecture reference diagram
+├── src/
+│   ├── data/            # stock_fetcher.py & mf_fetcher.py
+│   ├── analytics/       # technicals.py, fundamentals.py & mf_analytics.py
+│   ├── visualization/   # chart_builder.py
+│   ├── mcp_server/      # server.py & tools.py
+│   └── agent/           # agent.py
+├── demo_client/         # Live demo client scripts
+├── charts/              # Output storage for interactive Plotly HTML charts
+├── reports/             # Output storage for generated markdown research reports
+├── tests/               # 23 automated unit and integration tests
+├── TODO.md              # Granular task tracker
 ├── README.md
-└── main.py
+└── main.py              # CLI Entry point & MCP server launcher
 ```
 
 ---
 
-## 💻 Getting Started (Phase 1)
+## 💻 Quick Start & Commands
 
-### 1. Prerequisites
-- **Python 3.10+** (Tested on Python 3.14)
-- **Git**
-
-### 2. Setup Virtual Environment
-
+### 1. Setup Virtual Environment
 ```bash
-# Clone repository
-git clone https://github.com/akapoor30/Arthra-MCP.git
-cd Arthra-MCP
-
-# Create virtual environment
 python3 -m venv .venv
-
-# Activate virtual environment
-# On macOS/Linux:
 source .venv/bin/activate
-# On Windows:
-# .venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-# Upgrade pip
-pip install --upgrade pip
+### 2. Run Test Suite
+```bash
+python -m pytest tests/
+```
+
+### 3. Run FastMCP Server (For Claude Desktop / Cursor)
+```bash
+python main.py --server
+```
+
+### 4. Run Financial Analyst Agent via CLI
+```bash
+# Analyze any Indian Stock
+python main.py --agent "Analyze Reliance Industries"
+
+# Analyze any Indian Mutual Fund
+python main.py --agent "Analyze Parag Parikh Flexi Cap Fund"
+
+# Interactive prompt mode
+python main.py
+```
+
+### 5. View Generated Interactive HTML Charts
+```bash
+# Open charts in browser
+open charts/RELIANCE_NS_technical.html
+open charts/stock_comparison.html
+open charts/mf_comparison.html
 ```
 
 ---
 
-## 📑 Detailed Plan & Progress Tracking
+## 📑 Detailed Documentation Index
 
-- For a complete technical breakdown of each implementation phase, refer to [docs/plan.md](docs/plan.md).
-- For step-by-step progress tracking, refer to [TODO.md](TODO.md).
-- For detailed technical explanation of implemented phases, refer to [docs/phase_explanation.md](docs/phase_explanation.md).
+- [docs/plan.md](docs/plan.md) — Master Architecture & Flow Diagrams
+- [docs/phase_1.md](docs/phase_1.md) — Phase 1: Environment Setup
+- [docs/phase_2.md](docs/phase_2.md) — Phase 2: Data Ingestion Engine
+- [docs/phase_3.md](docs/phase_3.md) — Phase 3: Quantitative Analytics Engine
+- [docs/phase_4.md](docs/phase_4.md) — Phase 4: Plotly Visualization Engine
+- [docs/phase_5.md](docs/phase_5.md) — Phase 5: FastMCP Server Implementation
+- [docs/phase_6.md](docs/phase_6.md) — Phase 6: Financial Analyst Agent
+- [docs/phase_7.md](docs/phase_7.md) — Phase 7: Testing & Verification
+- [TODO.md](TODO.md) — Complete Project Progress Tracker
 
 ---
 

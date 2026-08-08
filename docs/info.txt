@@ -18,4 +18,5 @@ Documentation Index:
 - Phase 4 Explanation: docs/phase_4.md (Plotly Interactive Visualization Engine)
 - Phase 5 Explanation: docs/phase_5.md (FastMCP Server Implementation)
 - Phase 6 Explanation: docs/phase_6.md (Financial Analyst Agent & Interactive Interface)
+- Phase 7 Explanation: docs/phase_7.md (Testing, Verification & Walkthrough)
 - Progress Tracker: TODO.md
