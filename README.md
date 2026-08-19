@@ -104,12 +104,18 @@ pip install -r requirements.txt
 python -m pytest tests/
 ```
 
-### 3. Run FastMCP Server (For Claude Desktop / Cursor)
+### 3. Launch Streamlit Web Dashboard UI
+```bash
+streamlit run app.py
+```
+*(Automatically opens the interactive web dashboard at http://localhost:8501)*
+
+### 4. Run FastMCP Server (For Claude Desktop / Cursor)
 ```bash
 python main.py --server
 ```
 
-### 4. Run Financial Analyst Agent via CLI
+### 5. Run Financial Analyst Agent via CLI
 ```bash
 # Analyze any Indian Stock
 python main.py --agent "Analyze Reliance Industries"
