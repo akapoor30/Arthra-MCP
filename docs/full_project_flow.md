@@ -1,238 +1,316 @@
-# Arthra MCP — End-to-End Comprehensive Architecture & Workflow Specification
+# Arthra MCP — Master Architecture, FastMCP Server Specification & File Registry
 
-This document provides an exhaustive, granular technical explanation of the end-to-end architecture, data flows, quantitative formulas, visualization engines, MCP tool handlers, and execution lifecycles of **Arthra MCP**.
+This document serves as the authoritative, end-to-end technical reference manual for **Arthra MCP**. It details every architectural layer, mathematical model, visualization pipeline, the **FastMCP Server JSON-RPC 2.0 protocol implementation**, and an exhaustive **file-by-file system registry**.
 
 ---
 
-## 1. Master System Architecture Flowchart
+## 1. Master System Flowchart (Architecture Overview)
 
 ```mermaid
 flowchart TD
     subgraph ClientLayer ["1. Client & Host Application Layer"]
-        CLI["CLI Entry Point<br/>(main.py)"]
+        Claude["Claude Desktop / Cursor<br/>(MCP Host Client)"]
+        CLI["CLI Command Line<br/>(main.py)"]
         WebUI["Streamlit Web UI<br/>(app.py)"]
-        Claude["Claude Desktop / Cursor<br/>(MCP Host over STDIO)"]
     end
 
-    subgraph AgentLayer ["2. Financial Agent & Protocol Layer"]
-        Agent["FinancialAnalystAgent<br/>(src/agent/agent.py)"]
-        FastMCP["FastMCP Server<br/>(src/mcp_server/server.py)"]
-        Tools["MCP Tools Dispatcher<br/>(src/mcp_server/tools.py)"]
+    subgraph FastMCPProtocol ["2. FastMCP Server & Protocol Layer (STDIO)"]
+        StdioStream["STDIO Transport Stream<br/>(stdin / stdout JSON-RPC 2.0)"]
+        MCPServerCore["MCPServer Instance<br/>(src/mcp_server/server.py)<br/>• FastMCP Decorator Registry<br/>• Schema Serialization<br/>• sys.stderr Logging Isolation"]
+        ToolDispatcher["MCP Tools Dispatcher<br/>(src/mcp_server/tools.py)<br/>• tool_search_indian_symbol<br/>• tool_fetch_financial_data<br/>• tool_analyze_and_visualize<br/>• tool_compare_assets"]
     end
 
-    subgraph IngestionLayer ["3. Market Data Ingestion Engine"]
-        StockFetch["Stock Data Fetcher<br/>(src/data/stock_fetcher.py)"]
-        MFFetch["Mutual Fund Fetcher<br/>(src/data/mf_fetcher.py)"]
+    subgraph DataEngine ["3. Market Data Ingestion Layer"]
+        StockFetch["Stock Fetcher<br/>(src/data/stock_fetcher.py)<br/>• Ticker Suffix Normalizer (.NS/.BO)<br/>• Quotes, OHLCV, Financials"]
+        MFFetch["Mutual Fund Fetcher<br/>(src/data/mf_fetcher.py)<br/>• AMFI Code Search<br/>• NAV Time Series Ingestion"]
     end
 
-    subgraph ExternalAPIs ["External Financial REST APIs"]
-        YFinance["Yahoo Finance API<br/>(NSE .NS / BSE .BO Tickers)"]
-        AMFI["AMFI API<br/>(mfapi.in Scheme NAV Series)"]
+    subgraph RESTAPIs ["External Financial REST APIs"]
+        YFinance["Yahoo Finance REST API<br/>(NSE / BSE Equity Data)"]
+        AMFI["AMFI API (mfapi.in)<br/>(Indian Mutual Funds NAV)"]
     end
 
-    subgraph AnalyticsLayer ["4. Quantitative Analytics & Scoring Engine"]
-        TechEngine["Technicals Engine<br/>(src/analytics/technicals.py)<br/>• SMA 20/50/200, EMA 9/21<br/>• RSI (14), MACD (12,26,9)<br/>• Bollinger Bands (20, 2σ)<br/>• Beta vs NIFTY 50 (^NSEI)"]
-        FundEngine["Fundamentals Scorecard<br/>(src/analytics/fundamentals.py)<br/>• 100-Point Financial Scorecard<br/>• Valuation (P/E, P/B, EV/EBITDA)<br/>• Profitability (ROE, ROCE)<br/>• Debt & Cash Flow Leverage"]
-        MFEngine["Mutual Fund Analytics<br/>(src/analytics/mf_analytics.py)<br/>• CAGR (1Y, 3Y, 5Y, Inception)<br/>• Sharpe & Sortino (RBI 6.5%)<br/>• Max Drawdown % & Rolling Returns"]
+    subgraph AnalyticsEngine ["4. Quantitative Analytics Engine"]
+        TechModule["Technical Analysis<br/>(src/analytics/technicals.py)<br/>• SMA 20/50/200, EMA 9/21<br/>• RSI (14), MACD (12,26,9)<br/>• Bollinger Bands (20, 2σ)<br/>• Beta vs NIFTY 50 (^NSEI)"]
+        FundModule["Fundamental Scorecard<br/>(src/analytics/fundamentals.py)<br/>• 100-Point Health Rating<br/>• Valuation P/E, P/B, EV/EBITDA<br/>• ROE, ROCE, Debt/Equity"]
+        MFModule["Mutual Fund Analytics<br/>(src/analytics/mf_analytics.py)<br/>• CAGR (1Y, 3Y, 5Y, Inception)<br/>• Sharpe & Sortino (RBI 6.5%)<br/>• Max Drawdown % & Rolling Returns"]
     end
 
-    subgraph VisLayer ["5. Plotly Visualization Engine"]
-        ChartBuilder["Chart Builder<br/>(src/visualization/chart_builder.py)<br/>• 3-Panel Stock Technical Candlesticks<br/>• 2-Panel MF NAV & Drawdown Plot<br/>• Normalized Stock/MF Comparisons"]
+    subgraph VisEngine ["5. Plotly Visualization Engine"]
+        ChartBuilder["Chart Builder Engine<br/>(src/visualization/chart_builder.py)<br/>• 3-Panel Stock Technical Candlesticks<br/>• 2-Panel MF NAV & Drawdown Curve<br/>• Stock & MF Comparison Plots"]
     end
 
-    subgraph StorageLayer ["6. File Exports & Storage"]
-        HTMLCharts["Interactive HTML Charts<br/>(charts/*.html)"]
-        MDReports["Executive Markdown Reports<br/>(reports/*.md)"]
+    subgraph Storage ["6. Local Deliverables & Exports"]
+        HTMLCharts["Interactive Plotly Charts<br/>(charts/*.html)"]
+        MDReports["Markdown Research Reports<br/>(reports/*.md)"]
     end
 
-    %% Flow Connections
-    CLI --> Agent
-    WebUI --> Agent
-    Claude <-->|STDIO JSON-RPC| FastMCP
-    FastMCP --> Tools
-    Agent --> Tools
+    %% Protocol & Data Connections
+    Claude <-->|STDIO JSON-RPC 2.0| StdioStream
+    StdioStream <--> MCPServerCore
+    MCPServerCore --> ToolDispatcher
 
-    Tools --> StockFetch
-    Tools --> MFFetch
-    Tools --> TechEngine
-    Tools --> FundEngine
-    Tools --> MFEngine
-    Tools --> ChartBuilder
+    CLI --> ToolsDispatcher
+    WebUI --> ToolDispatcher
+
+    ToolDispatcher --> StockFetch
+    ToolDispatcher --> MFFetch
+    ToolDispatcher --> TechModule
+    ToolDispatcher --> FundModule
+    ToolDispatcher --> MFModule
+    ToolDispatcher --> ChartBuilder
 
     StockFetch <-->|HTTP REST| YFinance
     MFFetch <-->|HTTP REST| AMFI
 
-    TechEngine --> StockFetch
-    FundEngine --> StockFetch
-    MFEngine --> MFFetch
-
-    ChartBuilder --> TechEngine
-    ChartBuilder --> MFEngine
     ChartBuilder --> HTMLCharts
-
-    Agent --> MDReports
+    ToolDispatcher --> MDReports
 ```
 
 ---
 
-## 2. Sequence Diagram: Detailed Request Execution Lifecycle
+## 2. Sequence Diagram: FastMCP JSON-RPC Execution Cycle
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as User / Host App
-    participant Agent as FinancialAnalystAgent
-    participant Tools as MCP Tools (tools.py)
-    participant StockEngine as Stock Ingestion (stock_fetcher)
-    participant MFEngine as MF Ingestion (mf_fetcher)
-    participant Quant as Analytics Engines (technicals/fundamentals/mf_analytics)
-    participant Vis as Chart Builder (chart_builder)
-    participant Disk as Local File Storage (charts/ & reports/)
+    participant Host as Host Client (Claude Desktop / Cursor)
+    participant Server as FastMCP Server (server.py)
+    participant Dispatcher as Tools Dispatcher (tools.py)
+    participant Data as Data Ingestion (stock_fetcher / mf_fetcher)
+    participant Quant as Analytics Modules (technicals / fundamentals / mf_analytics)
+    participant Vis as Plotly Visualizer (chart_builder)
 
-    User->>Agent: Query ("Analyze Reliance Industries")
-    Agent->>Tools: tool_search_indian_symbol("Reliance")
-    Tools->>StockEngine: normalize_indian_symbol("Reliance")
-    StockEngine-->>Tools: "RELIANCE.NS"
-    Tools-->>Agent: {"resolvedStockSymbol": "RELIANCE.NS"}
+    Note over Host, Server: Phase A: Capability Discovery & Registration
+    Host->>Server: JSON-RPC request: {"jsonrpc":"2.0", "method":"tools/list", "id":1}
+    Server-->>Host: JSON-RPC response: Tool Schemas (names, docstrings, JSON parameters)
 
-    Agent->>Tools: tool_analyze_and_visualize("RELIANCE.NS", asset_type="stock", period="1y")
+    Note over Host, Server: Phase B: Tool Execution Request
+    Host->>Server: JSON-RPC request: {"jsonrpc":"2.0", "method":"tools/call", "params":{"name":"analyze_and_visualize", "arguments":{"symbol":"TCS", "asset_type":"stock"}}, "id":2}
+    
+    Server->>Dispatcher: Call tool_analyze_and_visualize(symbol="TCS", asset_type="stock")
     
     rect rgb(30, 35, 45)
-        Note over Tools, Quant: Quantitative Computation Phase
-        Tools->>StockEngine: get_historical_ohlcv("RELIANCE.NS", period="2y") [Warmup Data]
-        StockEngine-->>Tools: OHLCV DataFrame (500 candles)
-        Tools->>Quant: get_full_technical_analysis(df)
-        Quant-->>Tools: {RSI: 63.4, SMA20: 1295.4, MACD, Sentiment: "STRONG BULLISH"}
-        Tools->>Quant: calculate_beta_and_volatility(df)
-        Quant->>StockEngine: get_historical_ohlcv("^NSEI", period="1y")
-        Quant-->>Tools: {Beta: 0.92, Volatility: 22.4%}
-        Tools->>StockEngine: get_stock_fundamentals("RELIANCE.NS")
-        StockEngine-->>Tools: Raw Financial Ratios
-        Tools->>Quant: compute_financial_health_scorecard(raw_fund)
-        Quant-->>Tools: {healthScore: 78/100, valuationStatus: "FAIR"}
+        Note over Dispatcher, Quant: Data Fetching & Quantitative Analysis
+        Dispatcher->>Data: normalize_indian_symbol("TCS") -> "TCS.NS"
+        Dispatcher->>Data: get_historical_ohlcv("TCS.NS", period="2y") [Warmup Data]
+        Data-->>Dispatcher: DataFrame (500 candles)
+        Dispatcher->>Quant: get_full_technical_analysis(df)
+        Quant-->>Dispatcher: Technicals Dict (RSI: 63.38, Sentiment: "STRONG BULLISH")
+        Dispatcher->>Data: get_stock_fundamentals("TCS.NS")
+        Data-->>Dispatcher: Fundamental Ratios Dict
+        Dispatcher->>Quant: compute_financial_health_scorecard(raw_fund)
+        Quant-->>Dispatcher: Scorecard Dict (healthScore: 100/100)
     end
 
     rect rgb(40, 45, 55)
-        Note over Tools, Vis: Visual Chart Generation Phase
-        Tools->>Vis: build_stock_technical_chart("RELIANCE.NS", period="1y")
-        Vis->>Disk: Save interactive HTML chart -> charts/RELIANCE_NS_technical.html
-        Vis-->>Tools: "/path/to/charts/RELIANCE_NS_technical.html"
+        Note over Dispatcher, Vis: Plotly HTML Chart Rendering
+        Dispatcher->>Vis: build_stock_technical_chart("TCS.NS", period="1y")
+        Vis-->>Dispatcher: Chart path "/.../charts/TCS_NS_technical.html"
     end
 
-    Tools-->>Agent: Complete JSON Payload + Chart File Path
-    Agent->>Disk: Synthesize & Save Markdown Report -> reports/RELIANCE_NS_report.md
-    Agent-->>User: Markdown Research Report + Interactive HTML Link
+    Dispatcher-->>Server: Final Result Dictionary
+    Server-->>Host: JSON-RPC response: {"jsonrpc":"2.0", "result":{"content":[{"type":"text", "text":"{...JSON Payload...}"}]}, "id":2}
 ```
 
 ---
 
-## 3. Component Deep Dive & Detailed Specifications
+## 3. FastMCP Server & Protocol Deep Dive (`src/mcp_server/`)
 
-### Module 1: Indian Market Data Ingestion (`src/data/`)
+### A. How FastMCP Works Under the Hood
 
-#### A. Stock Fetcher (`src/data/stock_fetcher.py`)
-- **Symbol Normalization**: Ensures Indian stock query inputs append `.NS` (National Stock Exchange) or `.BO` (Bombay Stock Exchange). If no suffix is passed, `.NS` is automatically appended.
-- **Quote Ingestion (`get_stock_quote`)**: Fetches current price, previous close, percentage change, day high/low, 52-week high/low, volume, and total market capitalization.
-- **Historical OHLCV (`get_historical_ohlcv`)**: Downloads historical Open, High, Low, Close, Volume price series via `yfinance` for specified durations (`1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`).
-- **Fundamental Financials (`get_stock_fundamentals`)**: Retrieves valuation multiples (P/E, Forward P/E, P/B, EV/EBITDA), profitability margins (Profit Margin, Operating Margin), returns on capital (ROE, ROCE), debt ratios (Debt to Equity), and free cash flow.
+The Model Context Protocol (MCP) uses a client-server architecture. In Arthra MCP, the server is built using the official Python SDK's `MCPServer` class (`mcp.server.mcpserver`).
 
-#### B. Mutual Fund Fetcher (`src/data/mf_fetcher.py`)
-- **AMFI Scheme Directory (`search_mutual_fund`)**: Queries the official AMFI database published via `mfapi.in` to resolve scheme names to 6-digit AMFI scheme codes (e.g. `122640` for Parag Parikh Flexi Cap Fund).
-- **Historical NAV Series (`get_mutual_fund_nav_df`)**: Fetches full daily NAV history since inception, parses dates into standard datetime objects, converts NAV strings to float64, and sorts chronologically.
+#### 1. STDIO Transport Isolation
+- The server communicates via **Standard Input (stdin)** and **Standard Output (stdout)** streams.
+- **Critical Requirement**: `stdout` MUST contain ONLY valid JSON-RPC 2.0 frames. Any raw `print()` statements outputting to `stdout` will corrupt the JSON stream and crash the client connection.
+- **Implementation Guarantee**: In `src/mcp_server/server.py`, logging is strictly redirected to Standard Error (`sys.stderr`):
+  ```python
+  logging.basicConfig(level=logging.INFO, stream=sys.stderr)
+  ```
 
----
-
-### Module 2: Quantitative Analytics Engine (`src/analytics/`)
-
-#### A. Technical Analysis (`src/analytics/technicals.py`)
-1. **Simple Moving Average (SMA)**:
-   $$\text{SMA}_k = \frac{1}{k} \sum_{i=0}^{k-1} P_{t-i}$$
-   Calculated for $k \in \{20, 50, 200\}$.
-2. **Exponential Moving Average (EMA)**:
-   $$\text{EMA}_t = P_t \times \left(\frac{2}{k+1}\right) + \text{EMA}_{t-1} \times \left(1 - \frac{2}{k+1}\right)$$
-   Calculated for $k \in \{9, 21\}$.
-3. **Relative Strength Index (RSI 14)**:
-   $$\text{RS} = \frac{\text{Smoothed Average Gain}}{\text{Smoothed Average Loss}}, \quad \text{RSI} = 100 - \left(\frac{100}{1 + \text{RS}}\right)$$
-   Evaluated over 14 trading days. Values $>70$ signal Overbought; $<30$ signal Oversold.
-4. **MACD (Moving Average Convergence Divergence)**:
-   $$\text{MACD Line} = \text{EMA}_{12}(P) - \text{EMA}_{26}(P)$$
-   $$\text{Signal Line} = \text{EMA}_9(\text{MACD Line})$$
-   $$\text{Histogram} = \text{MACD Line} - \text{Signal Line}$$
-5. **Bollinger Bands (20, 2$\sigma$)**:
-   $$\text{Middle Band} = \text{SMA}_{20}, \quad \text{Upper Band} = \text{SMA}_{20} + 2\sigma_{20}, \quad \text{Lower Band} = \text{SMA}_{20} - 2\sigma_{20}$$
-6. **Beta & Volatility vs NIFTY 50 (`^NSEI`)**:
-   $$\text{Volatility}_{\text{ann}} = \sigma_{\text{daily}} \times \sqrt{252}$$
-   $$\beta = \frac{\text{Covariance}(R_{\text{stock}}, R_{\text{NIFTY}})}{\text{Variance}(R_{\text{NIFTY}})}$$
-
-#### B. Fundamental Health Scorecard (`src/analytics/fundamentals.py`)
-Computes a **100-Point Scorecard** evaluating:
-- **Valuation Score (30 Pts)**: Trailing P/E vs sector average, Price to Book (P/B), EV/EBITDA ratio.
-- **Profitability Score (30 Pts)**: Return on Equity ($\text{ROE} > 15\%$), Return on Capital Employed ($\text{ROCE} > 15\%$), Operating Margin $\%$.
-- **Growth & Liquidity Score (20 Pts)**: Revenue growth, earnings growth, Quick Ratio.
-- **Debt & Cash Flow Score (20 Pts)**: Debt-to-Equity ratio ($<1.0$), Free Cash Flow positivity.
-
-#### C. Mutual Fund Risk Analytics (`src/analytics/mf_analytics.py`)
-1. **Compound Annual Growth Rate (CAGR)**:
-   $$\text{CAGR} = \left(\frac{\text{NAV}_{\text{end}}}{\text{NAV}_{\text{start}}}\right)^{\frac{1}{N}} - 1$$
-2. **Sharpe Ratio** (vs RBI 6.5% T-Bill Risk-Free Rate):
-   $$\text{Sharpe} = \frac{R_{\text{annualized}} - R_f}{\sigma_{\text{annualized}}}$$
-3. **Sortino Ratio**:
-   $$\text{Sortino} = \frac{R_{\text{annualized}} - R_f}{\sigma_{\text{downside}}}$$
-4. **Maximum Drawdown (MDD)**:
-   $$\text{Drawdown}_t = \frac{\text{NAV}_t - \text{Peak}_t}{\text{Peak}_t}, \quad \text{MDD} = \min_t(\text{Drawdown}_t)$$
-
----
-
-### Module 3: Plotly Visualization Engine (`src/visualization/`)
-
-- **Stock Technical Chart (`build_stock_technical_chart`)**:
-  - **Subplot 1 (60% height)**: Candlestick price chart + SMA 20 + SMA 50 + SMA 200 + EMA 9 + EMA 21 + Bollinger Bands shaded area. Includes 2-year indicator warmup so line series span **100% full width** without left margin gaps.
-  - **Subplot 2 (20% height)**: Purple RSI (14) line with 70 overbought and 30 oversold dashed threshold lines.
-  - **Subplot 3 (20% height)**: MACD line (cyan), Signal line (orange), and color-coded histogram bars (green for positive, red for negative).
-
-- **Mutual Fund Chart (`build_mutual_fund_chart`)**:
-  - **Subplot 1 (70% height)**: Neon green historical NAV growth trajectory.
-  - **Subplot 2 (30% height)**: Filled underwater drawdown percentage chart showing historical peak-to-trough drops.
-
-- **Comparative Baseline Charts (`build_stock_comparison_chart` & `build_mutual_fund_comparison_chart`)**:
-  - Normalizes prices to a $0.0\%$ baseline on Day 1:
-    $$\text{Return}_t = \left(\frac{P_t}{P_0} - 1.0\right) \times 100\%$$
-  - Plots asset return curves against NIFTY 50 benchmark (`^NSEI`) on the same axis.
-
----
-
-### Module 4: FastMCP Server Protocol (`src/mcp_server/`)
-
-Exposes standard JSON-RPC tools over STDIO:
-1. `search_indian_symbol(query: str)`
-2. `fetch_financial_data(symbol: str, data_type: str, period: str)`
-3. `analyze_and_visualize(symbol: str, asset_type: str, period: str)`
-4. `compare_assets(assets: List[str], asset_type: str, period: str)`
-
----
-
-### Module 5: Financial Analyst Agent (`src/agent/`) & Web UI (`app.py`)
-
-- **Agent Orchestrator**: Converts natural language prompts into tool executions and generates structured Markdown reports exported to `reports/`.
-- **Streamlit Web Dashboard (`app.py`)**: Real-time web browser UI providing single stock analytics, mutual fund analytics, multi-asset comparisons, stock peer fundamental matrices, and AI agent chat interface.
-
----
-
-## 4. File-by-File Dependency Graph
-
-```text
-app.py (Streamlit Web Dashboard UI)
- ├── src/data/stock_fetcher.py
- ├── src/data/mf_fetcher.py
- ├── src/analytics/technicals.py
- ├── src/analytics/fundamentals.py
- ├── src/analytics/mf_analytics.py
- └── src/agent/agent.py
-      └── src/mcp_server/tools.py
-           ├── src/data/stock_fetcher.py
-           ├── src/data/mf_fetcher.py
-           ├── src/analytics/technicals.py
-           ├── src/analytics/fundamentals.py
-           ├── src/analytics/mf_analytics.py
-           └── src/visualization/chart_builder.py
+#### 2. Automatic Tool Registration & Schema Generation
+When decorators like `@mcp.tool()` are added to functions in `src/mcp_server/server.py`:
+```python
+@mcp.tool()
+def analyze_and_visualize(
+    symbol: str, asset_type: str = "stock", period: str = "1y", generate_chart: bool = True
+) -> Dict[str, Any]:
+    """
+    Runs quantitative technical/fundamental/MF risk analysis AND generates interactive Plotly HTML chart.
+    """
+    return tool_analyze_and_visualize(symbol, asset_type=asset_type, period=period, generate_chart=generate_chart)
 ```
+The FastMCP engine inspects function type annotations (`symbol: str`, `period: str`, `generate_chart: bool`) and function docstrings to generate an OpenAPI-compliant JSON Schema sent to Claude/Cursor during tool discovery (`tools/list`).
+
+---
+
+### B. Registered FastMCP Tools Specification
+
+#### Tool 1: `search_indian_symbol`
+- **Purpose**: Resolves company names to NSE/BSE ticker symbols or searches AMFI Mutual Fund scheme codes.
+- **Input Parameters**:
+  - `query` (`string`, required): Search string (e.g., `"RELIANCE"`, `"TCS"`, `"Parag Parikh"`).
+- **Return JSON Structure**:
+  ```json
+  {
+    "query": "Parag Parikh",
+    "resolvedStockSymbol": null,
+    "stockQuoteSummary": null,
+    "mutualFundMatches": [
+      {
+        "schemeCode": 122640,
+        "schemeName": "Parag Parikh Flexi Cap Fund - Regular Plan - Growth"
+      }
+    ]
+  }
+  ```
+
+#### Tool 2: `fetch_financial_data`
+- **Purpose**: Fetches raw market quotes, historical OHLCV data, stock fundamental ratios, balance sheets, or mutual fund NAV series.
+- **Input Parameters**:
+  - `symbol` (`string`, required): Stock symbol (`"TCS"`) or Scheme Code (`"122640"`).
+  - `data_type` (`string`, optional): `"stock"`, `"mutual_fund"`, `"fundamentals"`, or `"financials"`.
+  - `period` (`string`, optional): Timeframe (`"1mo"`, `"3mo"`, `"6mo"`, `"1y"`, `"2y"`, `"5y"`).
+
+#### Tool 3: `analyze_and_visualize`
+- **Purpose**: Executes quantitative analysis (SMA, EMA, RSI, MACD, Beta vs NIFTY 50, 100-point fundamental scorecard, or MF CAGR/Sharpe/Sortino/Drawdowns) AND generates interactive dark-mode Plotly HTML charts saved to `charts/`.
+- **Input Parameters**:
+  - `symbol` (`string`, required): Ticker (`"RELIANCE"`) or Scheme Code (`"122640"`).
+  - `asset_type` (`string`, optional): `"stock"` or `"mutual_fund"`.
+  - `period` (`string`, optional): `"3mo"`, `"6mo"`, `"1y"`, `"2y"`, `"5y"`.
+  - `generate_chart` (`boolean`, optional): Default `true`.
+
+#### Tool 4: `compare_assets`
+- **Purpose**: Compares performance of multiple stocks or mutual funds normalized against NIFTY 50 benchmark on a $0.0\%$ baseline.
+- **Input Parameters**:
+  - `assets` (`array of strings`, required): e.g. `["RELIANCE", "TCS", "HDFCBANK"]`.
+  - `asset_type` (`string`, optional): `"stock"` or `"mutual_fund"`.
+  - `period` (`string`, optional): `"3mo"`, `"6mo"`, `"1y"`, `"3y"`, `"5y"`.
+
+---
+
+## 4. Comprehensive File-by-File System Registry ("Which File Does What")
+
+Below is the complete breakdown of **every single file in the project repository**, detailing its exact filepath, purpose, main functions/classes, dependencies, and operational responsibilities:
+
+### 📁 Core Source Package (`src/`)
+
+#### 1. Data Ingestion Layer (`src/data/`)
+- **[src/data/__init__.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/data/__init__.py)**
+  - *Purpose*: Package initialization file making `src.data` a Python module.
+- **[src/data/stock_fetcher.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/data/stock_fetcher.py)** (Total Lines: 175)
+  - *Purpose*: Fetches equity market data for Indian stocks listed on National Stock Exchange (NSE) and Bombay Stock Exchange (BSE) via `yfinance`.
+  - *Key Functions*:
+    - `normalize_indian_symbol(symbol: str) -> str`: Appends `.NS` or `.BO` suffix if missing (e.g. `RELIANCE` $\rightarrow$ `RELIANCE.NS`).
+    - `get_stock_quote(symbol: str) -> Dict`: Retrieves current price, day high/low, 52-week high/low, market cap, and volume.
+    - `get_historical_ohlcv(symbol: str, period: str, interval: str) -> pd.DataFrame`: Ingests Open-High-Low-Close-Volume price history dataframe.
+    - `get_stock_fundamentals(symbol: str) -> Dict`: Retrieves valuation ratios (P/E, P/B, EV/EBITDA), profitability (ROE, ROCE), and balance sheet data.
+    - `get_financial_statements(symbol: str) -> Dict`: Fetches income statement, balance sheet, and cash flow statement DataFrames.
+- **[src/data/mf_fetcher.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/data/mf_fetcher.py)** (Total Lines: 125)
+  - *Purpose*: Interacts with the official AMFI database via `mfapi.in` REST API to fetch Indian Mutual Fund data.
+  - *Key Functions*:
+    - `search_mutual_fund(query: str) -> List[Dict]`: Performs fuzzy scheme name search across all Indian AMFI mutual fund schemes.
+    - `get_mutual_fund_details(scheme_code: str) -> Dict`: Fetches scheme details, fund house, category, scheme type, and latest NAV.
+    - `get_mutual_fund_nav_df(scheme_code: str) -> pd.DataFrame`: Ingests complete historical daily NAV series as a clean pandas DataFrame sorted by date.
+
+#### 2. Quantitative Analytics Engine (`src/analytics/`)
+- **[src/analytics/__init__.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/analytics/__init__.py)**
+  - *Purpose*: Package initialization file for `src.analytics`.
+- **[src/analytics/technicals.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/analytics/technicals.py)** (Total Lines: 242)
+  - *Purpose*: Mathematical calculation engine for technical indicators, moving averages, momentum oscillators, and Beta.
+  - *Key Functions*:
+    - `calculate_sma(df, window, column) -> pd.Series`: Simple Moving Average.
+    - `calculate_ema(df, window, column) -> pd.Series`: Exponential Moving Average.
+    - `calculate_rsi(df, window) -> pd.Series`: Relative Strength Index (RSI 14).
+    - `calculate_macd(df, fast, slow, signal) -> Dict[str, pd.Series]`: MACD Line, Signal Line, and Histogram.
+    - `calculate_bollinger_bands(df, window, num_std) -> Dict[str, pd.Series]`: Bollinger Upper & Lower Bands.
+    - `calculate_beta_and_volatility(df_stock, benchmark_symbol) -> Dict`: Computes annualized volatility % and Beta relative to NIFTY 50 (`^NSEI`).
+    - `get_full_technical_analysis(df) -> Dict`: Combines all indicators and synthesizes overall technical sentiment (`STRONG BULLISH`, `BULLISH`, `NEUTRAL`, `BEARISH`).
+- **[src/analytics/fundamentals.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/analytics/fundamentals.py)** (Total Lines: 120)
+  - *Purpose*: Computes a comprehensive 100-Point Financial Health Scorecard for stocks.
+  - *Key Functions*:
+    - `compute_financial_health_scorecard(fundamentals_dict) -> Dict`: Evaluates Valuation (30 pts), Profitability (30 pts), Growth (20 pts), and Financial Leverage (20 pts), returning an overall score out of 100 and rating (`STRONG FUNDAMENTALS`, `MODERATE / FAIR`, `WEAK`).
+- **[src/analytics/mf_analytics.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/analytics/mf_analytics.py)** (Total Lines: 145)
+  - *Purpose*: Evaluates risk-adjusted performance for Indian Mutual Funds.
+  - *Key Functions*:
+    - `analyze_mutual_fund_performance(nav_df, risk_free_rate) -> Dict`: Calculates CAGR (1Y, 3Y, 5Y, Inception), Sharpe Ratio, Sortino Ratio (vs RBI 6.5% T-Bill benchmark), Annualized Volatility, Maximum Drawdown %, and 1-Year Rolling Returns.
+
+#### 3. Plotly Visualization Engine (`src/visualization/`)
+- **[src/visualization/__init__.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/visualization/__init__.py)**
+  - *Purpose*: Package initialization file for `src.visualization`.
+- **[src/visualization/chart_builder.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/visualization/chart_builder.py)** (Total Lines: 398)
+  - *Purpose*: Generates interactive dark-mode Plotly HTML charts with 2-year indicator warmup logic.
+  - *Key Functions*:
+    - `build_stock_technical_chart(ticker_symbol, period, save_filename) -> str`: Generates 3-panel Stock Technical chart (Candlesticks + MAs + Bollinger Bands / RSI 14 / MACD).
+    - `build_mutual_fund_chart(scheme_code, save_filename) -> str`: Generates 2-panel Mutual Fund chart (NAV Curve / Underwater Drawdown %).
+    - `build_stock_comparison_chart(stock_dict, period, save_filename) -> str`: Generates Stock vs Stock comparison chart vs NIFTY 50 benchmark on normalized 0% baseline.
+    - `build_mutual_fund_comparison_chart(mf_dict, period, save_filename) -> str`: Generates Mutual Fund vs Mutual Fund comparison chart vs NIFTY 50 benchmark on normalized 0% baseline.
+
+#### 4. FastMCP Server Protocol Layer (`src/mcp_server/`)
+- **[src/mcp_server/__init__.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/mcp_server/__init__.py)**
+  - *Purpose*: Package initialization file for `src.mcp_server`.
+- **[src/mcp_server/tools.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/mcp_server/tools.py)** (Total Lines: 219)
+  - *Purpose*: Contains handler functions bridging MCP tool invocations with underlying fetcher, analytics, and visualization modules.
+  - *Key Functions*: `tool_search_indian_symbol()`, `tool_fetch_financial_data()`, `tool_analyze_and_visualize()`, `tool_compare_assets()`.
+- **[src/mcp_server/server.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/mcp_server/server.py)** (Total Lines: 85)
+  - *Purpose*: Configures FastMCP `MCPServer` instance over STDIO, registers `@mcp.tool()` decorators, and executes `run_server()`.
+
+#### 5. Financial Analyst Agent (`src/agent/`)
+- **[src/agent/__init__.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/agent/__init__.py)**
+  - *Purpose*: Package initialization file for `src.agent`.
+- **[src/agent/agent.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/src/agent/agent.py)** (Total Lines: 235)
+  - *Purpose*: `FinancialAnalystAgent` class orchestrating natural language query resolution, stock/MF research execution, and markdown research report synthesis exported to `reports/`.
+
+---
+
+### 📁 Application Entry Points & User Interfaces
+
+- **[main.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/main.py)** (Total Lines: 85)
+  - *Purpose*: Command-Line Interface (CLI) entry point supporting flags:
+    - `--server`: Launches FastMCP server over STDIO.
+    - `--agent "<query>"`: Executes natural language agent query.
+    - `--stock <ticker>`: Runs stock research.
+    - `--mf <code_or_name>`: Runs mutual fund research.
+- **[app.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/app.py)** (Total Lines: 495)
+  - *Purpose*: Streamlit Web Dashboard UI containing 5 interactive modules:
+    1. 📊 Indian Equity Stock Analysis
+    2. 🏦 Mutual Fund Analysis
+    3. ⚡ Multi-Asset Comparison
+    4. 🏢 Stock Peer Fundamental Comparison Matrix
+    5. 🤖 AI Financial Agent Chat
+
+---
+
+### 📁 Test Suites (`tests/`)
+
+- **[tests/test_data_fetchers.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/tests/test_data_fetchers.py)**: Tests ticker normalization, stock quote fetching, OHLCV dataframes, fundamentals, and AMFI mutual fund APIs.
+- **[tests/test_analytics.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/tests/test_analytics.py)**: Tests SMA, EMA, RSI, MACD, Bollinger Bands, Beta vs NIFTY 50, 100-pt scorecard, and MF CAGR/Sharpe.
+- **[tests/test_visualization.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/tests/test_visualization.py)**: Tests Plotly HTML chart generation and output file paths.
+- **[tests/test_mcp_server.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/tests/test_mcp_server.py)**: Tests FastMCP server instantiation and tool execution handlers.
+- **[tests/test_agent.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/tests/test_agent.py)**: Tests agent intent parsing and Markdown report generation.
+
+---
+
+### 📁 Demonstration Client Scripts (`demo_client/`)
+
+- **[demo_client/demo_data.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/demo_client/demo_data.py)**: Demonstrates Phase 2 raw stock and mutual fund data fetching.
+- **[demo_client/demo_analytics.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/demo_client/demo_analytics.py)**: Demonstrates Phase 3 quantitative technicals, fundamental scorecards, and MF risk analytics.
+- **[demo_client/demo_visualization.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/demo_client/demo_visualization.py)**: Demonstrates Phase 4 Plotly HTML chart generation.
+- **[demo_client/demo_mcp_server.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/demo_client/demo_mcp_server.py)**: Demonstrates Phase 5 FastMCP tool calls.
+- **[demo_client/demo_agent.py](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/demo_client/demo_agent.py)**: Demonstrates Phase 6 Agent report synthesis.
+
+---
+
+### 📁 Documentation Suite (`docs/`)
+
+- **[docs/info.txt](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/docs/info.txt)**: Core project vision, goals, and documentation index.
+- **[docs/plan.md](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/docs/plan.md)**: Master 7-phase architecture plan and flowcharts.
+- **[docs/phase_1.md](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/docs/phase_1.md)**: Phase 1 Environment & Architecture documentation.
+- **[docs/phase_2.md](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/docs/phase_2.md)**: Phase 2 Data Ingestion documentation.
+- **[docs/phase_3.md](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/docs/phase_3.md)**: Phase 3 Quantitative Engine documentation.
+- **[docs/phase_4.md](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/docs/phase_4.md)**: Phase 4 Plotly Visualization documentation.
+- **[docs/phase_5.md](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/docs/phase_5.md)**: Phase 5 FastMCP Server documentation.
+- **[docs/phase_6.md](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/docs/phase_6.md)**: Phase 6 Financial Analyst Agent documentation.
+- **[docs/phase_7.md](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/docs/phase_7.md)**: Phase 7 Testing & Verification documentation.
+- **[docs/full_project_flow.md](file:///Users/anshkapoor/Desktop/projects/mcp_financal_analyst/docs/full_project_flow.md)**: Exhaustive master documentation (this file).
