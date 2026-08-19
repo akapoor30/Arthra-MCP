@@ -11,6 +11,7 @@ Architecture & Features:
 5. Financial Analyst Agent: Automated agent producing structured markdown financial reports with visual chart embeds.
 
 Documentation Index:
+- Master Architecture & Flow: docs/full_project_flow.md (Detailed End-to-End System Flow & Diagrams)
 - Master Plan: docs/plan.md
 - Phase 1 Explanation: docs/phase_1.md (Environment Setup & Architecture Foundation)
 - Phase 2 Explanation: docs/phase_2.md (Indian Market Data Ingestion Engine)

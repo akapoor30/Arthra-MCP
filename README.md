@@ -142,6 +142,7 @@ open charts/mf_comparison.html
 
 ## 📑 Detailed Documentation Index
 
+- [docs/full_project_flow.md](docs/full_project_flow.md) — Exhaustive End-to-End System Flow, Sequence Diagrams, & Math Formulas
 - [docs/plan.md](docs/plan.md) — Master Architecture & Flow Diagrams
 - [docs/phase_1.md](docs/phase_1.md) — Phase 1: Environment Setup
 - [docs/phase_2.md](docs/phase_2.md) — Phase 2: Data Ingestion Engine
