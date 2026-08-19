@@ -36,6 +36,8 @@ flowchart TD
   - **Fundamentals**: Health scorecard (P/E, P/B, EV/EBITDA, ROE, ROCE, Debt to Equity).
   - **Mutual Funds**: CAGR (1Y, 3Y, 5Y, Inception), Rolling Returns, Volatility, Sharpe Ratio, Sortino Ratio, and Max Drawdown.
 - **📊 Interactive Plotly Visualizations**: Candlestick charts with technical overlays, fundamental trend bands, mutual fund NAV trajectories, and separate stock & mutual fund comparison charts.
+- **🖥️ Streamlit Web Dashboard UI**: Feature-rich web application (`app.py`) featuring single stock analytics, mutual fund analytics, multi-asset benchmark comparisons, peer fundamental matrices, and interactive AI agent chat.
+- **🏢 Stock Peer Comparison Matrix**: Side-by-side valuation & fundamental metric comparison table (P/E, P/B, EV/EBITDA, Market Cap, 100-Point Scorecard) with comparative bar visualizers.
 - **🔌 FastMCP Tools Protocol**: Exposes clean MCP tools (`search_indian_symbol`, `fetch_financial_data`, `analyze_and_visualize`, `compare_assets`) for host clients like Claude Desktop, Cursor, or CLI Agents.
 - **🤖 Autonomous Financial Agent**: Synthesizes executive markdown research reports saved in `reports/` with embedded interactive Plotly chart links.
 
@@ -52,7 +54,7 @@ timeline
     Phase 4 : Plotly Visualization : Candlestick Subplots : NAV Curves & Drawdowns : Separate Comparison Charts
     Phase 5 : FastMCP Server : Registered Core MCP Tools : JSON-RPC over STDIO
     Phase 6 : Financial Agent : Intelligent Agent Runner : Markdown Report Synthesis
-    Phase 7 : Verification : 23/23 Test Suites Passed : Complete Documentation Suite
+    Phase 7 : Verification : 23/23 Test Suites Passed : Streamlit Web UI & Peer Matrix
 ```
 
 ---
@@ -83,9 +85,10 @@ mcp_financal_analyst/
 ├── charts/              # Output storage for interactive Plotly HTML charts
 ├── reports/             # Output storage for generated markdown research reports
 ├── tests/               # 23 automated unit and integration tests
+├── app.py               # Streamlit Web Dashboard UI & Peer Matrix
+├── main.py              # CLI Entry point & MCP server launcher
 ├── TODO.md              # Granular task tracker
-├── README.md
-└── main.py              # CLI Entry point & MCP server launcher
+└── README.md
 ```
 
 ---
