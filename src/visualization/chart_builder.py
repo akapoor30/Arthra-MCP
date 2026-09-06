@@ -24,8 +24,182 @@ from src.analytics.technicals import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-CHARTS_DIR = os.path.abspath("charts")
+CHARTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "charts")
+CHARTS_DIR = os.path.abspath(CHARTS_DIR)
 os.makedirs(CHARTS_DIR, exist_ok=True)
+
+
+def build_ipo_price_action_chart(
+    symbol: str, save_filename: Optional[str] = None
+) -> str:
+    """
+    Builds a 2-panel interactive Plotly chart for a newly listed / IPO stock
+    that has very limited trading history (< 60 sessions).
+
+      - Panel 1: Candlesticks + Volume bars + EMA 9 (if >= 10 bars) + VWAP
+      - Panel 2: Cumulative % return from IPO listing price
+
+    Works with as few as 5 trading sessions. Returns absolute filepath to HTML.
+    """
+    ticker_symbol = normalize_indian_symbol(symbol)
+    # Fetch max available history — for a new listing this is everything
+    df = get_historical_ohlcv(ticker_symbol, period="max")
+
+    if df.empty or len(df) < 2:
+        raise ValueError(f"No price data available for {ticker_symbol}")
+
+    n = len(df)
+    listing_price = df["Close"].iloc[0]
+    current_price = df["Close"].iloc[-1]
+    total_return = ((current_price - listing_price) / listing_price) * 100.0
+    return_color = "#26a69a" if total_return >= 0 else "#ef5350"
+
+    # EMA-9 only if enough bars
+    ema9 = calculate_ema(df, 9) if n >= 10 else None
+
+    # VWAP (cumulative)
+    typical_price = (df["High"] + df["Low"] + df["Close"]) / 3.0
+    vwap = (typical_price * df["Volume"]).cumsum() / df["Volume"].cumsum()
+
+    # Cumulative return from listing
+    cum_return = ((df["Close"] / listing_price) - 1.0) * 100.0
+
+    subplot_titles = (
+        f"<b>{ticker_symbol}</b> — IPO Price Action ({n} sessions) "
+        f"| Listing ₹{listing_price:.2f} → CMP ₹{current_price:.2f}",
+        f"<b>Return from Listing Price</b> (currently <span style='color:{return_color}'>{total_return:+.2f}%</span>)",
+    )
+
+    fig = make_subplots(
+        rows=2,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.06,
+        row_heights=[0.65, 0.35],
+        subplot_titles=subplot_titles,
+    )
+
+    # Candlestick
+    fig.add_trace(
+        go.Candlestick(
+            x=df.index,
+            open=df["Open"],
+            high=df["High"],
+            low=df["Low"],
+            close=df["Close"],
+            name="OHLC",
+            increasing_line_color="#26a69a",
+            decreasing_line_color="#ef5350",
+        ),
+        row=1, col=1,
+    )
+
+    # Volume bars
+    vol_colors = [
+        "#26a69a" if df["Close"].iloc[i] >= df["Open"].iloc[i] else "#ef5350"
+        for i in range(n)
+    ]
+    fig.add_trace(
+        go.Bar(
+            x=df.index,
+            y=df["Volume"],
+            name="Volume",
+            marker_color=vol_colors,
+            opacity=0.35,
+            yaxis="y3",
+        ),
+        row=1, col=1,
+    )
+
+    # VWAP
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=vwap,
+            mode="lines",
+            name="VWAP",
+            line=dict(color="#ffa726", width=1.8, dash="dot"),
+        ),
+        row=1, col=1,
+    )
+
+    # EMA-9
+    if ema9 is not None:
+        fig.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=ema9,
+                mode="lines",
+                name="EMA 9",
+                line=dict(color="#29b6f6", width=1.6),
+            ),
+            row=1, col=1,
+        )
+
+    # Listing price horizontal reference
+    fig.add_hline(
+        y=listing_price,
+        line_dash="dash",
+        line_color="rgba(255,255,255,0.4)",
+        annotation_text=f"Listing ₹{listing_price:.2f}",
+        annotation_position="top left",
+        row=1, col=1,
+    )
+
+    # IPO debut annotation on first candle
+    fig.add_annotation(
+        x=df.index[0],
+        y=df["High"].iloc[0],
+        text="📅 Debut",
+        showarrow=True,
+        arrowhead=2,
+        arrowcolor="#ffa726",
+        font=dict(color="#ffa726", size=11),
+        bgcolor="rgba(0,0,0,0.5)",
+        row=1, col=1,
+    )
+
+    # Cumulative return area
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=cum_return,
+            mode="lines",
+            name=f"Return from Listing ({total_return:+.2f}%)",
+            line=dict(color=return_color, width=2.2),
+            fill="tozeroy",
+            fillcolor=f"rgba({'38,166,154' if total_return >= 0 else '239,83,80'},0.12)",
+        ),
+        row=2, col=1,
+    )
+    fig.add_hline(y=0, line_color="rgba(255,255,255,0.3)", line_width=1, row=2, col=1)
+
+    clean_sym = ticker_symbol.replace(".", "_")
+    output_filename = save_filename or f"{clean_sym}_ipo_price_action.html"
+    filepath = os.path.join(CHARTS_DIR, output_filename)
+
+    fig.update_layout(
+        template="plotly_dark",
+        title=(
+            f"<b>Arthra MCP — IPO Price Action: {ticker_symbol}</b>  "
+            f"<span style='color:{return_color};font-size:14px'>{total_return:+.2f}% since listing</span>"
+        ),
+        xaxis_rangeslider_visible=False,
+        height=750,
+        margin=dict(l=50, r=40, t=80, b=50),
+        showlegend=True,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        yaxis3=dict(
+            overlaying="y",
+            side="right",
+            showgrid=False,
+            showticklabels=False,
+        ),
+    )
+
+    fig.write_html(filepath)
+    logger.info(f"Saved IPO price action chart to: {filepath}")
+    return filepath
 
 
 def build_stock_technical_chart(

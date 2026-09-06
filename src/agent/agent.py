@@ -18,7 +18,8 @@ from src.mcp_server.tools import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-REPORTS_DIR = os.path.abspath("reports")
+REPORTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "reports")
+REPORTS_DIR = os.path.abspath(REPORTS_DIR)
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
 

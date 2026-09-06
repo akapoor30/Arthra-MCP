@@ -26,6 +26,7 @@ from src.analytics.fundamentals import compute_financial_health_scorecard
 from src.analytics.mf_analytics import analyze_mutual_fund_performance
 from src.visualization.chart_builder import (
     build_stock_technical_chart,
+    build_ipo_price_action_chart,
     build_mutual_fund_chart,
     build_stock_comparison_chart,
     build_mutual_fund_comparison_chart,
@@ -143,23 +144,45 @@ def tool_analyze_and_visualize(
         }
     else:  # Stock
         norm_sym = normalize_indian_symbol(symbol)
-        df_ohlcv = get_historical_ohlcv(norm_sym, period=period)
-        
+        df_ohlcv = get_historical_ohlcv(norm_sym, period="max")
+        session_count = len(df_ohlcv)
+        is_new_listing = session_count < 60
+
+        # For established stocks fetch only the requested period for TA
+        if not is_new_listing:
+            df_ohlcv = get_historical_ohlcv(norm_sym, period=period)
+
         ta_results = get_full_technical_analysis(df_ohlcv)
         beta_results = calculate_beta_and_volatility(df_ohlcv)
-        
+
         raw_fund = get_stock_fundamentals(norm_sym)
         health_scorecard = compute_financial_health_scorecard(raw_fund)
-        
+
+        # Listing return (only meaningful for new listings)
+        listing_return = None
+        if is_new_listing and session_count >= 2:
+            first_close = df_ohlcv["Close"].iloc[0]
+            last_close = df_ohlcv["Close"].iloc[-1]
+            listing_return = round(((last_close - first_close) / first_close) * 100.0, 2)
+
         chart_path = None
         if generate_chart and not df_ohlcv.empty:
-            chart_path = build_stock_technical_chart(norm_sym, period=period)
-            
-        return {
+            if is_new_listing:
+                # Use IPO chart — works with as few as 5 sessions
+                logger.info(
+                    f"{norm_sym} has only {session_count} sessions — using IPO price action chart."
+                )
+                chart_path = build_ipo_price_action_chart(norm_sym)
+            else:
+                chart_path = build_stock_technical_chart(norm_sym, period=period)
+
+        result = {
             "assetType": "Indian Stock",
             "symbol": norm_sym,
             "companyName": raw_fund.get("companyName", norm_sym),
             "sector": raw_fund.get("sector"),
+            "isNewListing": is_new_listing,
+            "sessionCount": session_count,
             "technicalAnalysis": {
                 "sentiment": ta_results.get("overallSentiment"),
                 "rsi": ta_results.get("rsi"),
@@ -169,12 +192,21 @@ def tool_analyze_and_visualize(
                 "macd": ta_results.get("macd"),
                 "signalHighlights": ta_results.get("signalHighlights"),
                 "volatility": beta_results.get("volatility"),
-                "beta": beta_results.get("beta")
+                "beta": beta_results.get("beta"),
+                "note": (
+                    f"⚠️ Only {session_count} trading sessions available — indicators computed on limited data. "
+                    "SMA-200 and MACD may be unreliable. Chart shows IPO price action with VWAP & EMA-9."
+                    if is_new_listing else None
+                ),
             },
             "fundamentalScorecard": health_scorecard,
             "chartPath": chart_path,
-            "chartUrl": f"file://{chart_path}" if chart_path else None
+            "chartUrl": f"file://{chart_path}" if chart_path else None,
         }
+        if is_new_listing:
+            result["listingReturn"] = listing_return
+        return result
+
 
 
 def tool_compare_assets(
